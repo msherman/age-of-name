@@ -1,0 +1,12 @@
+.landing-page-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    flex-direction: column;
+}
+
+.landing-page-container .perform-action {
+    position: fixed;
+    top: calc(100vh - 72px);
+    left: calc(100vw - 72px);
+}
