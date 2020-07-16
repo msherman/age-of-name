@@ -14,6 +14,6 @@ provider "aws" {
 
 module "react_code_build" {
   source                = "./codebuild"
-  bucket_name           = aws_s3_bucket.ms-age-of-me.bucket
-  s3_arn                = aws_s3_bucket.ms-age-of-me.arn
+  bucket_name           = aws_s3_bucket.ms-age-of-name.bucket
+  s3_arn                = aws_s3_bucket.ms-age-of-name.arn
 }
