@@ -37,6 +37,19 @@ resource "aws_iam_role_policy" "example" {
       ]
     },
     {
+      "Effect":"Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:GetBucketVersioning",
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "${var.pipeline_bucket_arn}",
+        "${var.pipeline_bucket_arn}/*"
+      ]
+    },
+    {
       "Effect": "Allow",
       "Action": [
         "ec2:CreateNetworkInterface",
