@@ -24,7 +24,7 @@
     "build": "react-scripts build",
     "test-watch": "react-scripts test",
     "eject": "react-scripts eject",
-    "test": "jest --coverage --ci"
+    "test": "react-scripts test --watchAll=false"
   },
   "eslintConfig": {
     "extends": "react-app"
