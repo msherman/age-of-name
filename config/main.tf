@@ -25,6 +25,10 @@ module "react_code_pipeline" {
   website_bucket         = aws_s3_bucket.ms-age-of-name.bucket
   website_bucket_arn     = aws_s3_bucket.ms-age-of-name.arn
   sns_topic_arn          = module.react_pipeline_notifications.sns_topic_arn
+  pipeline_bucket_name = var.pipeline_bucket_name
+  repo_branch          = var.repo_branch
+  repo_name            = var.repo_name
+  repo_owner           = var.repo_owner
 }
 
 module "react_pipeline_notifications" {

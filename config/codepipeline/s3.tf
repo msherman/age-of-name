@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "pipeline-artifacts" {
-  bucket = "ms-age-of-name-pipeline"
+  bucket = var.pipeline_bucket_name
   acl    = "private"
 
   tags = {

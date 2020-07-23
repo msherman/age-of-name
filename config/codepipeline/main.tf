@@ -18,9 +18,9 @@ resource "aws_codepipeline" "react_pipeline" {
       output_artifacts = ["github_code"]
 
       configuration = {
-        Owner  = "msherman"
-        Repo   = "age-of-name"
-        Branch = "master"
+        Owner  = var.repo_owner
+        Repo   = var.repo_name
+        Branch = var.repo_branch
       }
     }
   }
@@ -35,7 +35,7 @@ resource "aws_codepipeline" "react_pipeline" {
       provider         = "CodeBuild"
       version          = "1"
       input_artifacts  = ["github_code"]
-      output_artifacts = ["react-artifacts"]
+      output_artifacts = ["react-artifacts"] // this artifact name matches the buildspec.yml
 
       configuration = {
         ProjectName = var.codebuild_project_name

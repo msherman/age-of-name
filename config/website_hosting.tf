@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "ms-age-of-name" {
-  bucket = "ms-age-of-name.com"
+  bucket = var.website_bucket_name
   acl    = "public-read"
 
   website {
