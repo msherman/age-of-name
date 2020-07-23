@@ -61,11 +61,11 @@ resource "aws_codepipeline" "react_pipeline" {
   }
 }
 
-resource "aws_codestarnotifications_notification_rule" "pipeline-failiures" {
+resource "aws_codestarnotifications_notification_rule" "pipeline-notifications" {
   detail_type    = "BASIC"
-  event_type_ids = ["codepipeline-pipeline-pipeline-execution-failed"]
+  event_type_ids = ["codepipeline-pipeline-pipeline-execution-failed", "codepipeline-pipeline-pipeline-execution-succeeded"]
 
-  name = "failed-pipeline-notifications"
+  name = "pipeline-notifications"
 
   resource = aws_codepipeline.react_pipeline.arn
 

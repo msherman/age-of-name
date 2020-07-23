@@ -21,5 +21,23 @@ resource "aws_sns_topic" "pipeline-notifications" {
 EOF
 }
 
+data "aws_iam_policy_document" "notification_policy" {
+  statement {
+    actions = ["sns:Publish"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["codestar-notifications.amazonaws.com"]
+    }
+
+    resources = [aws_sns_topic.pipeline-notifications.arn]
+  }
+}
+
+resource "aws_sns_topic_policy" "pipeline-notifications-policy" {
+  arn    = aws_sns_topic.pipeline-notifications.arn
+  policy = data.aws_iam_policy_document.notification_policy.json
+}
+
 // we would typically define the sns topic notification, but terraform does not support setting up email notifications
 // which would be the most ideal situation.
