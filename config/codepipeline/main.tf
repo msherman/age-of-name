@@ -46,18 +46,30 @@ resource "aws_codepipeline" "react_pipeline" {
   stage {
     name = "Deploy"
     action {
-      category = "Deploy"
-      name     = "Deploy-To-S3"
-      owner    = "AWS"
-      provider = "S3"
-      version  = "1"
+      category        = "Deploy"
+      name            = "Deploy-To-S3"
+      owner           = "AWS"
+      provider        = "S3"
+      version         = "1"
       input_artifacts = ["react-artifacts"]
 
       configuration = {
         BucketName = var.website_bucket
-        Extract = true
+        Extract    = true
       }
     }
   }
+}
 
+resource "aws_codestarnotifications_notification_rule" "pipeline-failiures" {
+  detail_type    = "BASIC"
+  event_type_ids = ["codepipeline-pipeline-pipeline-execution-failed"]
+
+  name = "failed-pipeline-notifications"
+
+  resource = aws_codepipeline.react_pipeline.arn
+
+  target {
+    address = var.sns_topic_arn
+  }
 }

@@ -24,4 +24,9 @@ module "react_code_pipeline" {
   codebuild_project_name = module.react_code_build.codebuild_project_name
   website_bucket         = aws_s3_bucket.ms-age-of-name.bucket
   website_bucket_arn     = aws_s3_bucket.ms-age-of-name.arn
+  sns_topic_arn          = module.react_pipeline_notifications.sns_topic_arn
+}
+
+module "react_pipeline_notifications" {
+  source = "./sns"
 }
