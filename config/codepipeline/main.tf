@@ -25,7 +25,7 @@ resource "aws_codepipeline" "react_pipeline" {
     }
   }
 
-  //get the code from the repo
+  //Run tests and build!
   stage {
     name = "Build"
     action {
@@ -42,4 +42,22 @@ resource "aws_codepipeline" "react_pipeline" {
       }
     }
   }
+
+  stage {
+    name = "Deploy"
+    action {
+      category = "Deploy"
+      name     = "Deploy-To-S3"
+      owner    = "AWS"
+      provider = "S3"
+      version  = "1"
+      input_artifacts = ["react-artifacts"]
+
+      configuration = {
+        BucketName = var.website_bucket
+        Extract = true
+      }
+    }
+  }
+
 }
