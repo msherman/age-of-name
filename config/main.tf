@@ -1,7 +1,12 @@
-//# Configure the AWS Provider
+terraform {
+  backend "s3" {
+    bucket = "ms-age-of-name-infra"
+    region = "us-east-1"
+    key = "terraform.state"
+  }
+}
 provider "aws" {
   region  = "us-east-1"
-  versions = "~> 2.0"
 }
 
 module "react_code_build" {
