@@ -4,6 +4,8 @@ terraform {
     region = "us-east-1"
     key    = "terraform.state"
   }
+
+  required_version = "~> 0.13"
 }
 
 # Configure the AWS Provider
