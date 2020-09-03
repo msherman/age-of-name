@@ -1,0 +1,6 @@
+pipeline_bucket_name = ""
+repo_branch = ""
+repo_name = ""
+repo_owner = ""
+website_bucket_name = ""
+repo_token = ""

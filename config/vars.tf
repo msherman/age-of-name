@@ -5,3 +5,4 @@ variable "repo_owner" {}
 variable "repo_name" {}
 variable "repo_branch" {}
 variable "pipeline_bucket_name" {}
+variable "repo_token" {}

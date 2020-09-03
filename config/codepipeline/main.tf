@@ -21,6 +21,7 @@ resource "aws_codepipeline" "react_pipeline" {
         Owner  = var.repo_owner
         Repo   = var.repo_name
         Branch = var.repo_branch
+        OAuthToken = var.repo_token
       }
     }
   }

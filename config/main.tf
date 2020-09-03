@@ -26,6 +26,7 @@ module "react_code_pipeline" {
   repo_branch          = var.repo_branch
   repo_name            = var.repo_name
   repo_owner           = var.repo_owner
+  repo_token           = var.repo_token
 }
 
 module "react_pipeline_notifications" {
