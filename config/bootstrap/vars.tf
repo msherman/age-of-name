@@ -1,0 +1,1 @@
+variable "infra_bucket_name" {}
