@@ -22,6 +22,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "deploy": "npm run build && cp src/error.html build/error.html",
     "test-watch": "react-scripts test",
     "eject": "react-scripts eject",
     "test": "react-scripts test --watchAll=false"
