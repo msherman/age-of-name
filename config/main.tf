@@ -1,6 +1,6 @@
 terraform {
   backend "s3" {
-    bucket = "ms-age-of-name-infra"
+    bucket = "ms-age-of-name-infra-two"
     region = "us-east-1"
     key = "terraform.state"
   }
