@@ -106,7 +106,7 @@ The other section it needs access to is `admin:repo_hook` which will allow it to
 After clicking `Generate Token` copy the token somewhere locally.
 
 ```diff
-- DO NOT COMMIT THIS PERSONAL ACCESS TOKEN IN TO YOUR CODE BASE**
+- DO NOT COMMIT THIS PERSONAL ACCESS TOKEN IN TO YOUR CODE BASE
 ```
 
 ### Planning the buckets
@@ -117,7 +117,7 @@ that bucket is already in use. S3 buckets are global to _all_ of S3.
 In total, we will need three buckets.
 * The infrastructure bucket  
 
-This bucket is responsible for housing all the terraform state that will be generated as part of the main pipeline.
+This bucket is responsible for housing all the terraform state generated as part of the main pipeline.
 We are going to utilize the terraform file in the [config/bootstrap](config/bootstrap) directory to generate this bucket.
 My recommendation is something along the lines of `initials-random 3 numbers-age-of-name-infra` ie. if your initials were ms
 `ms-247-age-of-name-infra`.
@@ -134,18 +134,18 @@ necessarily be interacting with this bucket, but the process needs it. My recomm
 S3 has the awesome ability of being able to host static web files. We will leverage this as part of process and serve
 the files from an S3 bucket. In the end the output from the terraform commands will provide the URL to where
 the hosted application, but we need to tell it the bucket to put it in. My recommendation is to follow the same pattern
-as above `intiais-same 3 numbers as above-age-of-name.com` ie if your initials were `ms` and the previous number you chose was
+as above `intials-same 3 numbers as above-age-of-name.com` ie if your initials were `ms` and the previous number you chose was
 `247` then `ms-247-age-of-name.com`.
 
 Great! We now have all the necessary pieces to move on and create the infrastructure and application!
 
 ### Creating the infrastructure bucket
 To create the infrastructure bucket open a terminal and navigate to [config/bootstrap](config/bootstrap). Keep in mind we are *NOT*
-running the `bootstrap.sh` file we just need access to the terraform files to create the infrastructure bucket.
+running the `bootstrap.sh` file we just need utilize the terraform files to create the infrastructure bucket.
 
-Now let's initialize terraform with a `terraform init`. After terraform is initialized we need to get
-our bucket created. If you look at the `main.tf` file you'll notice that it is creating an S3 bucket by using a variable
-`infra-bucket-name`. We will pass this variable in when we execute terraform.
+Let's initialize terraform with a `terraform init`. After terraform is initialized we need to get
+our bucket created. Inside the `main.tf` file it is creating an S3 bucket by using a variable `infra-bucket-name`.
+This variable value comes in when we execute terraform plan/approve.
 
 In the terminal execute `terraform plan -var="infra_bucket_name=your_infrastructure_bucket_name_here"`
 
@@ -156,15 +156,16 @@ This will provide the output of the plan for the infrastructure it will create.
 Run `terraform apply -var="infra_bucket_name=your_infrastructure_bucket_nameh_here"` and after
 reviewing type `yes`. At this point wait for the bucket to be created.
 
-While it creates it is worth noting, this process is going to store local terraform state to your computer ideally this would
-be in the cloud, but it's a catch 22 as you need a bucket to store the state in, but don't have a bucket yet so a bucket needs
-to be created. It could be manually created, and the above could be skipped.
+This process is going to store local terraform state to your computer. Ideally this would be in the cloud, but it's a
+catch 22 as you need a bucket to store the state in, but don't have a bucket yet so a bucket needs to be created. It
+could be manually created, and the above could be skipped.
 
-Let's move on to creating the AWS CodePipeline and deploying our application to an S3 bucket.
+Let's move on to creating the AWS CodePipeline and deploying the application to an S3 bucket.
 ### Creating the pipeline
-Now we have an infrastructure bucket created we can start the process for creating the pipeline and deploying the
-React artifacts to S3. There are a few approaches that can be taken to running the terraform code. I will outline two of
-them.
+With the infrastructure bucket created we can start the process for creating the pipeline and deploying the
+React artifacts to S3. There are a few approaches that can be taken to running the terraform code.
+
+I will outline two of them.
 
 **First option:**  
 1. In your terminal navigate to the [config/](config) directory
