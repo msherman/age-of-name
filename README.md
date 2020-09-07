@@ -208,55 +208,64 @@ within terraform. See the [config/website_hosting.tf](config/website_hosting.tf)
 1. Define the ACL to public-read to allow anyone to be able to read the contents of the bucket. Without this if you tried
 to access the webpage it would be unreachable.
 1. S3 needs to know where to find your index and error page. Error page is an optional parameter but still something
-that is good define.
+that is good to have defined.
 1. Lastly the bucket needs a policy that allows access to GET objects from the bucket. This allows the bucket to
 return the website to the requester.
+
 ### AWS CodePipeline
-[AWS CodePipeline](https://aws.amazon.com/codepipeline/) is a tool to perform CI/CD pipeline activities from within AWS. In this guide we only scratch the surface
-of what is actually possible. For this walk through we have three main stages.
+[AWS CodePipeline](https://aws.amazon.com/codepipeline/) is the tool provided by AWS to perform CI/CD pipeline activities.
+The tool has a plethora of options to implement processes following CI/CD best practices and is not limited to only AWS
+infrastructure and offerings.
+
+In this guide we only scratch the surface of what is actually possible. Let's take a look at the three main stages.
 1. A `source` stage for gathering the code from the hosted location
 1. A `build` stage that will run tests and then build the output artifacts to be deployed to S3
 1. A `deploy` stage to deploy the code to the S3 bucket for use.
 
-There are a couple other pieces of standard information we need to configure. First is a bucket for the pipeline to store
-the artifacts in throughout the stages. This can be seen in the [config/codepipeline/s3.tf](config/codepipeline/s3.tf) file.
+There are a couple other pieces of standard configuration we need to configure.
+
+First is a bucket for the pipeline to store the artifacts in throughout the stages.
+This can be seen in the [config/codepipeline/s3.tf](config/codepipeline/s3.tf) file.
 
 Next up is an IAM role to allow access to three separate things.
 1. The policy needs to allow the pipeline to get and put things in to the pipeline bucket.
 1. The policy needs to have access to start a CodeBuild process and get builds.
 1. The policy needs to allow access for the pipeline to publish artifacts to the website bucket.
 
-As stated it's a basic pipeline by default. A couple thought exercises for the reader at the end.
+As stated it's a basic pipeline by default. I've provided a couple thought exercises at the end regarding extending
+the pipeline in to a more robust tooling.
+
 #### Source Stage
-AWS CodePipeline at a minimum must have two stages. The first of these stages is to set it up to source the code artifacts
-needed to build the application. In the example we have we are pointing at github to source the artifacts but CodePipeline
-itself supports multiple AWS sources (S3, CodeCommit, ECR), bitbucket and github. See the [DOCS](https://docs.aws.amazon.com/codepipeline/latest/userguide/reference-pipeline-structure.html#action-requirements).
+AWS CodePipeline at a minimum must have two stages. Opening up the [config/codepipeline/main.tf](config/codepipeline/main.tf)
+file shows The first of these stages is to `source` the code artifacts needed to build the application. In the example
+github is the source for the artifacts but CodePipeline itself supports multiple AWS sources (S3, CodeCommit, ECR),
+bitbucket and github. See the [AWS DOCS](https://docs.aws.amazon.com/codepipeline/latest/userguide/reference-pipeline-structure.html#action-requirements).
 
-Based on the Source repo used the configuration will need to be updated. For our example we set up the appropriate configuration.
-This configuration needs an owner, repo, branch and an OAuthToken. To see more details about the configuration parts see
-the [AWS DOCS](https://docs.aws.amazon.com/codepipeline/latest/userguide/action-reference-GitHub.html#action-reference-GitHub-config).
+The configuration within terraform is dictated by the type of provider for the `source` stage. For our example we set up
+the appropriate configuration. This configuration needs an owner, repo, branch and an OAuthToken. To see more details
+about the configuration parts see the [AWS DOCS](https://docs.aws.amazon.com/codepipeline/latest/userguide/action-reference-GitHub.html#action-reference-GitHub-config).
 
-The other key piece of information is the name of the `output_artifacts`. The source stage will go out and fetch the artifacts
-from the github repo and then outputs them in an artifact inside the S3 pipeline bucket we created. They are referenced
-by the output name from terraform code. `github_code` in this example. 
+The other key piece of information is the name of the `output_artifacts`. The `source` stage will fetch the artifacts
+from the github repo and then places them in an artifact inside the S3 pipeline bucket we created. They are referenced
+by the output name of the `source` stage from terraform code, `github_code` in this file. 
 
 For running this example on a provider of AWS < 3 then the `OAuthToken` will not be picked up by the
 terraform plan/apply phase. See this [issue](https://github.com/terraform-providers/terraform-provider-aws/issues/2796)
 for additional details.
  
 #### Build Stage
-The build stage, where the bulk of the work currently is, needs to be configured to take the input artifacts and output
-the built artifacts. There are once again several options for the build phase, but the most standard option is
-to utilize a CodeBuild process. 
+The `build` stage, where the bulk of the work currently is, needs to be configured to take the input artifacts and output
+the built artifacts. There are several options for the build phase, but the most standard option is to utilize a CodeBuild
+process. 
 
-The configuration for a build step utilizing CodeBuild is straight forward. All it needs is the name of the CodeBuild project
-to run. The actual configuration of the CodeBuild step we will discuss more down below when we cover the CodeBuild terraform
-code.
+The configuration for a `build` stage utilizing CodeBuild is straight forward. All it needs is the name of the CodeBuild project
+to run, and the name of the `input_artifacts` and the `output_artifacts`. The actual configuration of the CodeBuild step
+we will discuss further below when we cover the CodeBuild terraform code and `buildspec.yml`.
 
 #### Deploy Stage
 The final stage in our pipeline is to take the `react-artifacts` output from the build phase and deploy it to the S3 bucket
 In the `deploy` stage there are 11 different options for deployment. See the [AWS DOCS](https://docs.aws.amazon.com/codepipeline/latest/userguide/reference-pipeline-structure.html#action-requirements)
-for additional information on the available providers. 
+for additional information on the available deployment providers. 
 
 There are three key pieces that are needed for terraform to properly set up the `deploy` stage.
 1. The `deploy` stage needs to know the name of the artifacts that are coming in to it. The naming of this `input_artifact`
@@ -265,9 +274,9 @@ needs to match the build stage `output_artifact` name.
 1. Finally, in the configuration it should be set to extract if the output of the build phase is compressing its outputs.
 
 #### Pipeline Notifications
-The last needed part for a pipeline is to not have to manually monitor and have the ability to receive notifications.
-These notifications have several events that can trigger a notification event, but for now we focus on two 
-pipeline notification types, failures and successes.
+A key part of a successful pipeline is to not have to manually monitor and have the ability to receive notifications for
+the running pipeline jobs. These notifications have several events that can trigger a notification event, but for now we
+focus on two pipeline notification types, failures and successes.
 
 When setting up the notifications there are 3 main pieces that are needed.
 1. The type of detail to be included in the notification
@@ -279,21 +288,22 @@ below. Along with setting up the step to get the notifications to come to the us
 [AWS CodeBuild](https://aws.amazon.com/codebuild/) is a tool to be able to spin up an operating system, perform build phases
 and then produce output artifact(s). There are many phases to the process, along with reporting, caching, and artifacts.
 
-CodeBuild even has the power to perform the same processes we are doing as a pipeline as a single step, but this is not
-a true CI/CD pipeline and lacks the robustness and flexibility of a true pipeline like AWS CodePipeline.
+CodeBuild even has the power to perform the entire pipeline processes of sourcing, building and deploying but this is not
+a true CI/CD pipeline as it lacks the robustness and flexibility of a true pipeline like AWS CodePipeline.
 
 CodeBuild utilizes a `buildspec.yml` file to define all the phases and steps. The file is committed in the application
-code and is not something that is published as part of the terraform processes.
+code and is not something that is published as part of the IaC processes.
 
 Let's dig in to the processes we are implementing and investigate this behavior.
+
 #### Terraform code
 The terraform code for this process is straight forward as the commands for the build process are stored inside the
-`buildspec.yml` file. Inside the `[config/codebuild/main.tf](config/codebuild/main.tf) file there are a few configuration
-items that are set up.
+`buildspec.yml` file. Inside the [config/codebuild/main.tf](config/codebuild/main.tf) file there are a few configuration
+items to set up.
 1. Source - This tells where the source artifacts for the build process are coming from. The location value `github_code`
 is the value from the source stage's `output_artifact`.
-1. Environment - This tells the build process what the base operating system inside the container should be for running the
-processes defined in the `buildspec.yml` process. See the [AWS DOCS for images](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html)
+1. Environment - This tells the build process what the base operating system and computer power should be for running the
+processes defined in the `buildspec.yml`. See the [AWS DOCS for images](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html)
 for details on the image and type. See the [AWS DOCS for compute](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-compute-types.html)
 for determining which is the best compute type for your build.
 1. Artifacts - These are the output artifacts that come out of the build process when it completes. This name needs to match
@@ -301,22 +311,25 @@ in three places, the CodePipeline build stage `output_artifacts`, the artifacts 
 the artifacts from the `buildspec.yml` file.
 
 Lastly there is an IAM role and policy that must be configured to allow it to push/pull artifacts from the bucket along
-with output log files and finally put objects. It also needs to the ability to create network interfaces as when it stands
-up the environment and pulls in any external packages it needs access to the outside world. A caching layer may solve this,
-but we do not go in to this detail here.
+with output log files and finally put objects in to the website bucket during deployment.
+It also needs to the ability to create network interfaces to be able to pull in any external packages it needs access to
+compile the source. If there are tight networking constraints a caching layer may solve this, but we do not go in to this
+detail here.
+
 #### Buildspec.yml
-The buildspec.yml file lives within the application code, and needs to live at the root level [AWS DOCS](https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#build-spec-ref-name-storage).
-The one we are implementing can be found at [buildspec.yml](buildspec.yml). Within the buildspec there are phases that are
+The buildspec.yml file lives within the application code, and needs to live at the root level according to the [AWS DOCS](https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#build-spec-ref-name-storage).
+The [buildspec.yml](buildspec.yml) file can be found at the root of our repository. Within the buildspec there are phases that are
 defined to perform steps to set up the environment, install any necessary packages, run tests, build the output artifacts,
 and then gather them in to the appropriate artifact name.
 
-As part of the `install` phase we can set the `runtime-version` those of which can be found in the [AWS DOCS](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html).
+As part of the `install` phase we can set the `runtime-version` for things such as node, java, ruby, etc. These runtimes
+can be found in the [AWS DOCS](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html).
 
 After the `install` phase is complete the next phase is the `pre_build` phase which can run any commands that need to be done
 to further configure the build environment. In our example we run the `npm install` portion during this phase to get ready
 for the steps in the build phase.
 
-The `build` phase of the process is where should issue commands to run the tests, and build the output artifacts. In the
+The `build` phase of the process is where commands should be issued to run the tests, and build the output artifacts. In the
 yaml file if any of the commands cause a `non 0 exit code` it will cause the job to report failure and will bubble up the
 failure to the pipeline.
 
@@ -340,7 +353,7 @@ to work directly with processes that require an external confirmation.
 1. Select the `react-pipeline-notifications` arn
 1. Select `email` for the protocol
 1. Enter your email and click create
-1. Open your email and confirm you want to receive these notifications.
+1. Open your email and click the confirmation link to receive these notifications.
 
 ### AWS Budgets
 AWS Budgets is a way to set up an account wide budget to stop resources once you reach a certain limit. This is in here
@@ -359,6 +372,7 @@ be needed to support a dev / test / prod type of environment structure?
 1. Assuming #1 is complete. What changes would be needed to add an approval step for code to move from test to
 production only after the approval?
 1. Assuming #1 is complete. What changes and where would it be best served to implement a functional testing / e2e
-type framework? (cypress, testcafe, selenium, cucumber, etc.)
+type framework (cypress, testcafe, selenium, cucumber, etc.)?
+    1. Furthermore what is the best AWS tool to implement this? CodeBuild? ECS? EC2? Lambda? CodePipeline?
 1. Assume `dev` and `test` are built from the `develop` branch and the `develop` branch is merged to `master`.
 What would it take to set up a process to build from the `master` branch for production?
