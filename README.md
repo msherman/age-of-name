@@ -4,7 +4,7 @@
 1. Overview
     1. Assumptions
     1. What are we building?
-    1. TL;DR - Is there a boot script so I don't need to read below?
+    1. TL;DR - Is there a boot script instead of reading all the below?
 1. Required information & Manual execution.
     1. The repo
     1. Github personal access token
@@ -36,37 +36,38 @@ The below are assumptions that are made prior to beginning.
     1. Terraform sources your AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_CODE from this location. [See here for more details](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#authentication)
 
 ### What are we building?
-This repo takes the idea of using Terraform with the AWS provider to utilize an AWS CodePipeline to automatically source,
-test, build, and deploy a React.js application from github. It will continually monitor for new updates to the specific
-branch and rerun the pipeline on 
-each subsequent run.  
+This repo takes the idea of using Terraform with the AWS provider to create an AWS CodePipeline to automatically source,
+test, build, and deploy a React.js application from github. It will continually monitor for new updates to a specific
+branch and rerun the pipeline on each subsequent run.  
 
-This guide is an opportunity to get your feet wet and have a working pipeline within AWS.
+This guide is an opportunity to get the feet wet and have a working AWS CodePipeline.
 
-### TL;DR - Is there a boot script so I don't need to read below?
+### TL;DR - Is there a boot script instead of reading all the below?
 Absolutely. There is a bootstrap.sh script located in [config/bootstrap](config/bootstrap). Running the script will ask
 for seven pieces of information. Let's cover quickly to get started. All the buckets below should **not**
 be created already.
 - infra bucket = a bucket name that will be created in S3 to store the terraform state files for creating the pipeline.
-- pipeline artifacts bucket = A bucket where the pipeline will store its artifacts during the process
+- pipeline artifacts bucket = A bucket where the pipeline will store its artifacts during the `source`, `build`, and `deploy
+process
 - Github repo name = if you forked this repo the value for this is `age-of-name` otherwise it's the name of your repo
 - Github repo owner = this is your github username
-- Github repo branch = the name of the branch to build from this guide works from `master`
+- Github repo branch = the name of the branch to build from. This guide utilizes the `master` branch.
 - Github personal access token = AWS needs access to Github. Follow these steps to generate a token: [docs](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
-  - When creating the token make sure `repo` and `admin:repo_hook` are checked at the parent level
+  - When creating the token make sure `repo` and `admin:repo_hook` are checked at the parent level.
 - Website hosting bucket = a bucket to host your website. Example `your-initials-age-of-name.com`
 
-Once you have all of this information, navigate to `config/bootstrap` and run `./bootstrap.sh`
+Once you have all of this information, navigate to `config/bootstrap` and run `./bootstrap.sh`. The script will ask for
+the inputs from above.
 
-This will provision everything you need to see the pipeline, and the terraform output is the s3 url to the website.
+Once complete you can log in to AWS to view the CodePipeline, and the value you see from the terraform output is the url
+to the website hosted in s3
 
 **Happy coding!**
 
 ## Required information & Manual execution.
 ### The repo
-To get started with this guide the first step that should be done is to fork this repository in to your own personal
-github account. This is needed as AWS will need to have an access token to be able to connect to the repository to source
-the necessary artifacts. 
+To get started with this guide the first step is to fork this repository in to your own personal github account.
+AWS will also need to have an access token to be able to connect to the repository to source the necessary artifacts. 
 
 There are three key pieces of information that is needed and should be noted down. Two come from the URL for your repository
 the last one is up to the reader.
@@ -76,16 +77,17 @@ the last one is up to the reader.
 
 Example of finding the owner and repo name. Using this current repos URL: https://github.com/msherman/age-of-name 
 * The owner is: `msherman`
-* the repo name is: `age-of-name`
-* the branch I would default to: `master`
+* The repo name is: `age-of-name`
+* For the branch I would default to: `master`
 
 This repository holds all the necessary artifacts to build the React application and create the infrastructure via
 Terraform. If you want to see what the end application will look like prior to deploying, navigate to the root of the
-project and execute `npm install && npm run dev`. This will spin up a local version of the application for you to see the
-final state which is a simple React app that makes one async call to get the age of a name.
+project and execute `npm install && npm run start`. This will spin up a local version of the application at `http://localhost:3000`
+for you to see the final state. The app is a simple React app that makes one async call to get the age of a name.
 ### Github personal access token
 As mentioned in the previous section AWS CodePipeline will need an access token to be able to access the repository and
-source the necessary artifacts to use inside the CodePipeline phases. To generate a code Github has some great [documentation](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token).  
+source the necessary artifacts to use inside the CodePipeline `source` phase.
+To generate a code Github has some great [documentation](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token).  
 
 With the generated token there are two main areas that AWS needs access to be able to source the artifacts. First it
 will need access to the whole `repo` block which includes the following:
@@ -96,14 +98,16 @@ will need access to the whole `repo` block which includes the following:
   * repo:invite
   * security_events
 
-The other section it needs access to is `admin:repo_hook` which will give it access to monitor the code base. This includes the following:
+The other section it needs access to is `admin:repo_hook` which will allow it to monitor the code base. This includes the following:
 * admin:repo_hook
   * write:repo_hook
   * read:repo_hook
 
 After clicking `Generate Token` copy the token somewhere locally.
 
-**DO NOT COMMIT THIS PERSONAL ACCESS TOKEN IN TO YOUR CODE BASE**
+```diff
+- DO NOT COMMIT THIS PERSONAL ACCESS TOKEN IN TO YOUR CODE BASE**
+```
 
 ### Planning the buckets
 Now the github details are out of the way and noted down we need to start thinking about and planning our buckets
