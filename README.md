@@ -38,7 +38,7 @@ The below are assumptions that are made prior to beginning.
 ### What are we building?
 This repo takes the idea of using Terraform with the AWS provider to create an AWS CodePipeline to automatically source,
 test, build, and deploy a React.js application from github. It will continually monitor for new updates to a specific
-branch and rerun the pipeline on each subsequent run.  
+branch and rerun the pipeline on each subsequent push to the branch.  
 
 This guide is an opportunity to get the feet wet and have a working AWS CodePipeline.
 
