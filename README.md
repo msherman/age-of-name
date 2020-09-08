@@ -367,6 +367,8 @@ With the time of writing this and performing multiple pushes / standing up the i
 ### Thought exercises
 The last part I'd like to leave the reader with is some thoughts on how to implement additional processes to further
 expand on what you have learned.
+1. Would it be possible to only configure the source stage to listen to changes for the React code, and to ignore changes
+to the README or config folder?
 1. In this codebase there is only one environment that is created. Let's loosely call it production. What changes / additions would
 be needed to support a dev / test / prod type of environment structure?
 1. Assuming #1 is complete. What changes would be needed to add an approval step for code to move from test to
